@@ -2,7 +2,7 @@
 
 A comprehensive, MiFID II-compliant investment advisory platform for profiling clients, assessing risk tolerance, and building suitable investment portfolios with real-time market data.
 
-📚 **[Complete Guide](./GUIDE.md)** | 🔒 **[API Security](./API_SECURITY_SETUP.md)** | 🌐 **[API Reference](./API_REFERENCE.md)** | 🏗️ **[Architecture](./ARCHITECTURE.md)** | 📋 **[Docs Index](./DOCS.md)**
+📚 **[Complete Guide](./GUIDE.md)** | 🔒 **[API Security](./API_SECURITY_SETUP.md)** | 🌐 **[API Reference](./API_REFERENCE.md)** | 🏗️ **[Architecture](./ARCHITECTURE.md)** | 📋 **[Docs Index](./DOCS.md)** | ☁️ **[Render Deployment](./RENDER_DEPLOYMENT.md)**
 
 ## Features
 
@@ -115,6 +115,29 @@ npm start
 Frontend will run on `http://localhost:3000`
 
 The app will automatically open in your browser.
+
+## Cloud Deployment
+
+### Deploy to Render (Recommended)
+
+This application is ready to deploy to Render with zero configuration:
+
+1. **Quick Deploy:**
+   - Push your code to GitHub
+   - Go to [Render Dashboard](https://dashboard.render.com/)
+   - Click "New +" → "Blueprint"
+   - Select your repository
+   - Render will auto-detect `render.yaml` and deploy both services
+
+2. **Set Environment Variables:**
+   - Add your API keys in Render dashboard
+   - Generate frontend API key using backend's `generateApiKey.js`
+
+📖 **[Complete Deployment Guide](./RENDER_DEPLOYMENT.md)** - Step-by-step instructions
+
+✅ **[Deployment Checklist](./DEPLOYMENT_CHECKLIST.md)** - Quick reference
+
+**Free Tier Available:** Both frontend and backend can run on Render's free tier.
 
 ## Adding Custom Input Fields
 

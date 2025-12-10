@@ -31,7 +31,19 @@ if (!fs.existsSync(PORTFOLIOS_DIR)) {
   fs.mkdirSync(PORTFOLIOS_DIR, { recursive: true });
 }
 
-app.use(cors());
+// CORS configuration for production
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' 
+    ? [
+        'https://mifid-frontend.onrender.com',
+        /\.onrender\.com$/  // Allow all Render preview deployments
+      ]
+    : '*',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -1418,7 +1430,16 @@ app.delete('/api/risk-configuration/:tenant', (req, res) => {
   res.json({ message: `Tenant ${tenant} deleted successfully` });
 });
 
+// Health check endpoint for Render
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    service: 'mifid-backend'
+  });
+});
 
 app.listen(PORT, () => {
   console.log(`MiFID II Backend server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });

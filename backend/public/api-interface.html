@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiFID II API Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .endpoint-group {
+            margin-bottom: 20px;
+        }
+
+        .endpoint-group h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .endpoint-btn {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 14px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .endpoint-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        .endpoint-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .method-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .method-post { background: #28a745; color: white; }
+        .method-get { background: #17a2b8; color: white; }
+        .method-delete { background: #dc3545; color: white; }
+
+        .content-area {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .endpoint-header {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .endpoint-header h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .endpoint-url {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .endpoint-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .form-section {
+            margin-bottom: 25px;
+        }
+
+        .form-section h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            font-family: 'Courier New', monospace;
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .form-group small {
+            display: block;
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .response-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .response-section h3 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .response-box {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .response-box pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .status-success { background: #d4edda; color: #155724; }
+        .status-error { background: #f8d7da; color: #721c24; }
+        .status-info { background: #d1ecf1; color: #0c5460; }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .clients-list {
+            margin-top: 20px;
+        }
+
+        .client-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .client-card h4 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .client-card p {
+            color: #666;
+            font-size: 13px;
+            margin: 3px 0;
+        }
+
+        .client-card .client-id {
+            font-family: 'Courier New', monospace;
+            color: #667eea;
+            font-size: 12px;
+        }
+
+        .template-btn {
+            background: #17a2b8;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-left: 10px;
+        }
+
+        .template-btn:hover {
+            background: #138496;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .info-box p {
+            color: #0c5460;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 MiFID II API Interface</h1>
+            <p>Interactive interface for testing and using the Client Profiling API endpoints</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <h2>API Endpoints</h2>
+                
+                <div class="endpoint-group">
+                    <h3>Client Management</h3>
+                    <button class="endpoint-btn active" onclick="showEndpoint('createClient')">
+                        <span class="method-badge method-post">POST</span>
+                        Create Client
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('getClients')">
+                        <span class="method-badge method-get">GET</span>
+                        Get All Clients
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('getClient')">
+                        <span class="method-badge method-get">GET</span>
+                        Get Client
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('deleteClient')">
+                        <span class="method-badge method-delete">DEL</span>
+                        Delete Client
+                    </button>
+                </div>
+
+                <div class="endpoint-group">
+                    <h3>Profile Updates</h3>
+                    <button class="endpoint-btn" onclick="showEndpoint('updatePersonal')">
+                        <span class="method-badge method-post">POST</span>
+                        Personal Info
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('updateFinancial')">
+                        <span class="method-badge method-post">POST</span>
+                        Financial Situation
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('updateKnowledge')">
+                        <span class="method-badge method-post">POST</span>
+                        Knowledge & Experience
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('updateObjectives')">
+                        <span class="method-badge method-post">POST</span>
+                        Objectives
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('updateRisk')">
+                        <span class="method-badge method-post">POST</span>
+                        Risk Tolerance
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('updateSustainability')">
+                        <span class="method-badge method-post">POST</span>
+                        Sustainability
+                    </button>
+                </div>
+
+                <div class="endpoint-group">
+                    <h3>Market Data</h3>
+                    <button class="endpoint-btn" onclick="showEndpoint('filterInstruments')">
+                        <span class="method-badge method-post">POST</span>
+                        Filter Instruments
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('historicalData')">
+                        <span class="method-badge method-post">POST</span>
+                        Historical Data
+                    </button>
+                </div>
+
+                <div class="endpoint-group">
+                    <h3>Accounts</h3>
+                    <button class="endpoint-btn" onclick="showEndpoint('createAccount')">
+                        <span class="method-badge method-post">POST</span>
+                        Create Account
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('getAccount')">
+                        <span class="method-badge method-get">GET</span>
+                        Get Account
+                    </button>
+                </div>
+
+                <div class="endpoint-group">
+                    <h3>Portfolios</h3>
+                    <button class="endpoint-btn" onclick="showEndpoint('uploadExisting')">
+                        <span class="method-badge method-post">POST</span>
+                        Upload Existing
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('createPortfolio')">
+                        <span class="method-badge method-post">POST</span>
+                        Create Proposed
+                    </button>
+                    <button class="endpoint-btn" onclick="showEndpoint('comparePortfolios')">
+                        <span class="method-badge method-post">POST</span>
+                        Compare Portfolios
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div id="endpoint-content">
+                    <!-- Content will be dynamically loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api';
+        let currentClientId = '';
+
+        const endpoints = {
+            createClient: {
+                title: 'Create New Client',
+                method: 'POST',
+                url: '/clients/new',
+                description: 'Create a new client with basic information. Only firstName, lastName, and email are required.',
+                template: {
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    email: 'john.doe@example.com',
+                    phone: '+47 123 45 678',
+                    dateOfBirth: '1985-05-15',
+                    nationality: 'Norwegian',
+                    address: 'Oslo, Norway'
+                },
+                requiresClientId: false
+            },
+            getClients: {
+                title: 'Get All Clients',
+                method: 'GET',
+                url: '/clients',
+                description: 'Retrieve all clients in the system with their risk profiles.',
+                requiresClientId: false,
+                noBody: true
+            },
+            getClient: {
+                title: 'Get Specific Client',
+                method: 'GET',
+                url: '/clients/:id',
+                description: 'Retrieve a specific client by ID with complete profile and risk assessment.',
+                requiresClientId: true,
+                noBody: true
+            },
+            deleteClient: {
+                title: 'Delete Client',
+                method: 'DELETE',
+                url: '/clients/:id',
+                description: 'Delete a client from the system.',
+                requiresClientId: true,
+                noBody: true
+            },
+            updatePersonal: {
+                title: 'Update Personal Information',
+                method: 'POST',
+                url: '/clients/:id/personal-info',
+                description: 'Update client\'s personal information. All fields are optional.',
+                template: {
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    email: 'john.doe@example.com',
+                    phone: '+47 987 65 432',
+                    dateOfBirth: '1985-05-15',
+                    nationality: 'Norwegian',
+                    address: 'Bergen, Norway'
+                },
+                requiresClientId: true
+            },
+            updateFinancial: {
+                title: 'Update Financial Situation',
+                method: 'POST',
+                url: '/clients/:id/financial-situation',
+                description: 'Update client\'s financial situation. Automatically recalculates risk profile.',
+                template: {
+                    annualIncome: 750000,
+                    netWorth: 3500000,
+                    investableAssets: 1500000,
+                    employmentStatus: 'employed_full_time',
+                    sourceOfWealth: 'salary_and_investments'
+                },
+                requiresClientId: true
+            },
+            updateKnowledge: {
+                title: 'Update Knowledge & Experience',
+                method: 'POST',
+                url: '/clients/:id/knowledge-experience',
+                description: 'Update client\'s investment knowledge and experience. Automatically recalculates risk profile.',
+                template: {
+                    yearsInvesting: 8,
+                    educationLevel: 'finance_degree',
+                    instrumentKnowledge: [
+                        { instrument: 'stocks', knowledge: 'expert' },
+                        { instrument: 'bonds', knowledge: 'experienced' },
+                        { instrument: 'etfs', knowledge: 'experienced' }
+                    ],
+                    tradingFrequency: 'monthly',
+                    professionalExperience: true
+                },
+                requiresClientId: true
+            },
+            updateObjectives: {
+                title: 'Update Investment Objectives',
+                method: 'POST',
+                url: '/clients/:id/objectives',
+                description: 'Update client\'s investment objectives. Automatically recalculates risk profile.',
+                template: {
+                    primaryObjective: 'growth',
+                    timeHorizon: 'long',
+                    liquidityNeeds: 'low',
+                    expectedReturn: 8,
+                    investmentAmount: 1000000
+                },
+                requiresClientId: true
+            },
+            updateRisk: {
+                title: 'Update Risk Tolerance',
+                method: 'POST',
+                url: '/clients/:id/risk-tolerance',
+                description: 'Update client\'s risk tolerance. Automatically recalculates risk profile.',
+                template: {
+                    level: 'moderate',
+                    maxDrawdown: 20,
+                    volatilityComfort: 'medium',
+                    lossReaction: 'hold_and_wait'
+                },
+                requiresClientId: true
+            },
+            updateSustainability: {
+                title: 'Update Sustainability Preferences',
+                method: 'POST',
+                url: '/clients/:id/sustainability',
+                description: 'Update client\'s ESG and sustainability preferences.',
+                template: {
+                    esgImportance: 'very_important',
+                    excludeSectors: ['tobacco', 'weapons', 'fossil_fuels'],
+                    preferredSectors: ['renewable_energy', 'technology', 'healthcare'],
+                    esgMinRating: 7
+                },
+                requiresClientId: true
+            },
+            filterInstruments: {
+                title: 'Filter Instruments by Risk Profile',
+                method: 'POST',
+                url: '/instruments/filter',
+                description: 'Get investment instruments filtered by risk profile with real-time pricing.',
+                template: {
+                    riskLevel: 5,
+                    allowedInstruments: ['stocks', 'etfs', 'bonds', 'mutual_funds', 'reits'],
+                    sustainabilityPreferences: {
+                        excludeSectors: ['tobacco', 'weapons'],
+                        esgMinRating: 7
+                    }
+                },
+                requiresClientId: false
+            },
+            historicalData: {
+                title: 'Get Historical Data',
+                method: 'POST',
+                url: '/instruments/historical',
+                description: 'Get historical price data for instruments. Range options: 1mo, 3mo, 6mo, 1y, 5y',
+                template: {
+                    symbols: ['AAPL', 'MSFT', 'SPY'],
+                    range: '1y'
+                },
+                requiresClientId: false
+            },
+            createAccount: {
+                title: 'Create/Get Account',
+                method: 'POST',
+                url: '/accounts',
+                description: 'Create or retrieve an account for a client. Accounts link clients to their portfolios.',
+                template: {
+                    clientId: 'paste_client_id_here'
+                },
+                requiresClientId: false
+            },
+            getAccount: {
+                title: 'Get Account with Portfolios',
+                method: 'GET',
+                url: '/accounts/:id',
+                description: 'Retrieve an account with all associated portfolios (existing and proposed).',
+                requiresClientId: true,
+                noBody: true
+            },
+            uploadExisting: {
+                title: 'Upload Existing Portfolio',
+                method: 'POST',
+                url: '/accounts/:id/existing-portfolio',
+                description: 'Upload a client\'s existing portfolio holdings. Required fields: symbol, quantity, currentValue.',
+                template: {
+                    name: 'Current Holdings',
+                    holdings: [
+                        {
+                            symbol: 'AAPL',
+                            name: 'Apple Inc.',
+                            quantity: 100,
+                            currentValue: 17500,
+                            purchasePrice: 150,
+                            purchaseDate: '2023-01-15',
+                            type: 'stocks'
+                        },
+                        {
+                            symbol: 'MSFT',
+                            name: 'Microsoft Corporation',
+                            quantity: 50,
+                            currentValue: 18500,
+                            type: 'stocks'
+                        }
+                    ]
+                },
+                requiresClientId: true
+            },
+            createPortfolio: {
+                title: 'Create Proposed Portfolio',
+                method: 'POST',
+                url: '/portfolios',
+                description: 'Create a new proposed portfolio for a client with instrument allocations.',
+                template: {
+                    clientId: 'paste_client_id_here',
+                    clientName: 'John Doe',
+                    name: 'Balanced Growth Portfolio',
+                    holdings: [
+                        {
+                            symbol: 'AAPL',
+                            name: 'Apple Inc.',
+                            allocation: 20,
+                            price: 175,
+                            type: 'stocks'
+                        },
+                        {
+                            symbol: 'MSFT',
+                            name: 'Microsoft Corporation',
+                            allocation: 20,
+                            price: 370,
+                            type: 'stocks'
+                        },
+                        {
+                            symbol: 'SPY',
+                            name: 'SPDR S&P 500 ETF',
+                            allocation: 30,
+                            price: 450,
+                            type: 'etfs'
+                        },
+                        {
+                            symbol: 'BND',
+                            name: 'Vanguard Total Bond Market ETF',
+                            allocation: 30,
+                            price: 75,
+                            type: 'bonds'
+                        }
+                    ],
+                    totalValue: 50000,
+                    amountForAdvice: 50000
+                },
+                requiresClientId: false
+            },
+            comparePortfolios: {
+                title: 'Compare Portfolios',
+                method: 'POST',
+                url: '/portfolios/compare',
+                description: 'Compare an existing portfolio with a proposed portfolio. Shows differences, added/removed holdings, and allocation changes.',
+                template: {
+                    existingPortfolioId: 'paste_existing_portfolio_id_here',
+                    proposedPortfolioId: 'paste_proposed_portfolio_id_here'
+                },
+                requiresClientId: false
+            }
+        };
+
+        function showEndpoint(endpointKey) {
+            // Update active button
+            document.querySelectorAll('.endpoint-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.closest('.endpoint-btn').classList.add('active');
+
+            const endpoint = endpoints[endpointKey];
+            const content = document.getElementById('endpoint-content');
+            
+            let html = `
+                <div class="endpoint-header">
+                    <h2>${endpoint.title}</h2>
+                    <div class="endpoint-url">
+                        <span class="method-badge method-${endpoint.method.toLowerCase()}">${endpoint.method}</span>
+                        ${API_BASE}${endpoint.url}
+                    </div>
+                    <div class="endpoint-description">${endpoint.description}</div>
+                </div>
+            `;
+
+            if (endpoint.requiresClientId) {
+                html += `
+                    <div class="info-box">
+                        <p><strong>Client ID Required:</strong> Enter a client ID below or create a new client first.</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Client ID *</label>
+                        <input type="text" id="clientId" placeholder="Enter client ID" value="${currentClientId}">
+                        <small>Get this from creating a client or from the "Get All Clients" endpoint</small>
+                    </div>
+                `;
+            }
+
+            if (!endpoint.noBody) {
+                html += `
+                    <div class="form-section">
+                        <h3>Request Body (JSON)
+                            ${endpoint.template ? '<button class="template-btn" onclick="loadTemplate(\'' + endpointKey + '\')">Load Template</button>' : ''}
+                        </h3>
+                        <div class="form-group">
+                            <textarea id="requestBody" placeholder="Enter JSON payload here...">${endpoint.template ? JSON.stringify(endpoint.template, null, 2) : ''}</textarea>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="sendRequest('${endpointKey}')">
+                        Send Request
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearResponse()">
+                        Clear Response
+                    </button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Sending request...</p>
+                </div>
+
+                <div class="response-section" id="responseSection" style="display: none;">
+                    <h3>Response</h3>
+                    <div id="statusBadge"></div>
+                    <div class="response-box">
+                        <pre id="responseBody"></pre>
+                    </div>
+                </div>
+            `;
+
+            content.innerHTML = html;
+        }
+
+        function loadTemplate(endpointKey) {
+            const endpoint = endpoints[endpointKey];
+            if (endpoint.template) {
+                document.getElementById('requestBody').value = JSON.stringify(endpoint.template, null, 2);
+            }
+        }
+
+        async function sendRequest(endpointKey) {
+            const endpoint = endpoints[endpointKey];
+            const loading = document.getElementById('loading');
+            const responseSection = document.getElementById('responseSection');
+            
+            loading.classList.add('active');
+            responseSection.style.display = 'none';
+
+            try {
+                let url = API_BASE + endpoint.url;
+                let body = null;
+
+                // Handle client ID
+                if (endpoint.requiresClientId) {
+                    const clientId = document.getElementById('clientId').value.trim();
+                    if (!clientId) {
+                        throw new Error('Client ID is required');
+                    }
+                    url = url.replace(':id', clientId);
+                    currentClientId = clientId;
+                }
+
+                // Handle request body
+                if (!endpoint.noBody) {
+                    const bodyText = document.getElementById('requestBody').value.trim();
+                    if (bodyText) {
+                        try {
+                            body = JSON.parse(bodyText);
+                        } catch (e) {
+                            throw new Error('Invalid JSON: ' + e.message);
+                        }
+                    }
+                }
+
+                // Make request
+                const options = {
+                    method: endpoint.method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+
+                if (body) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const response = await fetch(url, options);
+                const data = await response.json();
+
+                // Display response
+                displayResponse(response.status, data);
+
+                // Auto-fill client ID if created
+                if (endpointKey === 'createClient' && data.client && data.client.id) {
+                    currentClientId = data.client.id;
+                }
+
+            } catch (error) {
+                displayResponse(0, { error: error.message });
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        function displayResponse(status, data) {
+            const responseSection = document.getElementById('responseSection');
+            const statusBadge = document.getElementById('statusBadge');
+            const responseBody = document.getElementById('responseBody');
+
+            responseSection.style.display = 'block';
+
+            // Status badge
+            let badgeClass = 'status-info';
+            let statusText = 'Response';
+            
+            if (status >= 200 && status < 300) {
+                badgeClass = 'status-success';
+                statusText = `Success (${status})`;
+            } else if (status >= 400) {
+                badgeClass = 'status-error';
+                statusText = `Error (${status})`;
+            } else if (status === 0) {
+                badgeClass = 'status-error';
+                statusText = 'Request Failed';
+            }
+
+            statusBadge.innerHTML = `<span class="status-badge ${badgeClass}">${statusText}</span>`;
+            responseBody.textContent = JSON.stringify(data, null, 2);
+
+            // Scroll to response
+            responseSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function clearResponse() {
+            const responseSection = document.getElementById('responseSection');
+            responseSection.style.display = 'none';
+        }
+
+        // Initialize with first endpoint
+        window.onload = () => {
+            showEndpoint('createClient');
+        };
+    </script>
+</body>
+</html>

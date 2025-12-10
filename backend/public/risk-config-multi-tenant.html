@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tenant Risk Configuration - MiFID II</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .tenant-selector {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tenant-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.3s;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .tenant-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .tenant-card.active {
+            border-color: #667eea;
+            background: #e7eaff;
+        }
+
+        .tenant-card h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .tenant-card p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .subsection {
+            margin-bottom: 30px;
+        }
+
+        .subsection h3 {
+            color: #555;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .rule-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .rule-item label {
+            display: block;
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .rule-item input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .rule-item input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .rule-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .risk-level-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .risk-level-card h4 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .risk-level-card input,
+        .risk-level-card select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .instruments-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .instrument-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .instrument-checkbox input {
+            width: auto;
+            margin: 0;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .tenant-info {
+            background: #e7eaff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .tenant-info h3 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .tenant-info p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .new-tenant-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .new-tenant-form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏢 Multi-Tenant Risk Configuration</h1>
+            <p>Configure risk scoring rules and instrument allocation for different client segments</p>
+            
+            <div class="tenant-selector" id="tenantSelector">
+                <!-- Tenants will be loaded here -->
+            </div>
+
+            <div class="actions">
+                <button class="btn btn-primary" onclick="saveConfiguration()" id="saveBtn" disabled>💾 Save Configuration</button>
+                <button class="btn btn-secondary" onclick="loadConfiguration()">🔄 Reload</button>
+                <button class="btn btn-success" onclick="showNewTenantForm()">➕ New Tenant</button>
+                <button class="btn btn-danger" onclick="deleteTenant()" id="deleteBtn" disabled>🗑️ Delete Tenant</button>
+                <a href="/" class="btn btn-secondary">← Back to API Interface</a>
+            </div>
+
+            <div id="alert" style="margin-top: 20px;"></div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading configuration...</p>
+        </div>
+
+        <div class="content" id="content" style="display: none;">
+            <div class="section full-width">
+                <div class="tenant-info" id="tenantInfo"></div>
+            </div>
+
+            <!-- Scoring Rules Section -->
+            <div class="section">
+                <h2>📊 Scoring Rules</h2>
+                <p style="color: #666; margin-bottom: 20px; font-size: 14px;">
+                    ⚠️ <strong>Note:</strong> Financial situation does NOT affect risk scoring. Only knowledge, objectives, and tolerance matter.
+                </p>
+                
+                <div class="subsection">
+                    <h3>Knowledge & Experience</h3>
+                    <div id="knowledgeRules"></div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Investment Objectives</h3>
+                    <div id="objectivesRules"></div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Risk Tolerance</h3>
+                    <div id="riskToleranceRules"></div>
+                </div>
+            </div>
+
+            <!-- Risk Levels Section -->
+            <div class="section">
+                <h2>🎯 Risk Levels & Instruments</h2>
+                <p style="color: #666; margin-bottom: 20px;">Configure score ranges and allowed instruments for each risk level</p>
+                <div id="riskLevels"></div>
+            </div>
+        </div>
+
+        <!-- New Tenant Form Modal -->
+        <div id="newTenantModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%;">
+                <h2 style="margin-bottom: 20px;">Create New Tenant</h2>
+                <input type="text" id="newTenantId" placeholder="Tenant ID (e.g., 'wealth_management')" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 2px solid #e9ecef; border-radius: 4px;">
+                <input type="text" id="newTenantName" placeholder="Display Name (e.g., 'Wealth Management')" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 2px solid #e9ecef; border-radius: 4px;">
+                <input type="text" id="newTenantDesc" placeholder="Description" style="width: 100%; padding: 10px; margin-bottom: 20px; border: 2px solid #e9ecef; border-radius: 4px;">
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-primary" onclick="createNewTenant()">Create</button>
+                    <button class="btn btn-secondary" onclick="hideNewTenantForm()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api';
+        let tenants = [];
+        let currentTenant = 'retail';
+        let configuration = null;
+
+        const availableInstruments = [
+            'stocks', 'bonds', 'etfs', 'mutual_funds', 'options', 'futures',
+            'commodities', 'crypto', 'reits', 'high_yield_bonds', 'bond_funds',
+            'government_bonds', 'money_market', 'savings', 'balanced_funds',
+            'dividend_stocks', 'leveraged_etfs'
+        ];
+
+        async function loadTenants() {
+            try {
+                const response = await fetch(`${API_BASE}/tenants`);
+                const data = await response.json();
+                tenants = data.tenants;
+                renderTenantSelector();
+            } catch (error) {
+                showAlert('Error loading tenants: ' + error.message, 'error');
+            }
+        }
+
+        function renderTenantSelector() {
+            const container = document.getElementById('tenantSelector');
+            container.innerHTML = tenants.map(tenant => `
+                <div class="tenant-card ${tenant.id === currentTenant ? 'active' : ''}" 
+                     onclick="selectTenant('${tenant.id}')">
+                    <h3>${tenant.name}</h3>
+                    <p>${tenant.description}</p>
+                </div>
+            `).join('');
+        }
+
+        async function selectTenant(tenantId) {
+            currentTenant = tenantId;
+            renderTenantSelector();
+            await loadConfiguration();
+            
+            // Enable/disable delete button
+            const deleteBtn = document.getElementById('deleteBtn');
+            deleteBtn.disabled = (tenantId === 'retail' || tenantId === 'private_banking');
+        }
+
+        async function loadConfiguration() {
+            showLoading(true);
+            try {
+                const response = await fetch(`${API_BASE}/risk-configuration/${currentTenant}`);
+                configuration = await response.json();
+                renderConfiguration();
+                showAlert(`Loaded configuration for ${configuration.name}`, 'success');
+                document.getElementById('saveBtn').disabled = false;
+            } catch (error) {
+                showAlert('Error loading configuration: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function renderConfiguration() {
+            if (!configuration) return;
+
+            // Render tenant info
+            document.getElementById('tenantInfo').innerHTML = `
+                <h3>${configuration.name}</h3>
+                <p>${configuration.description}</p>
+            `;
+
+            renderKnowledgeRules();
+            renderObjectivesRules();
+            renderRiskToleranceRules();
+            renderRiskLevels();
+
+            document.getElementById('content').style.display = 'grid';
+        }
+
+        function renderKnowledgeRules() {
+            const container = document.getElementById('knowledgeRules');
+            const knowledge = configuration.scoringRules.knowledgeExperience;
+
+            let html = '<h4 style="margin-top: 15px; color: #667eea;">Years Investing</h4>';
+            knowledge.yearsInvesting.forEach((range, index) => {
+                html += `
+                    <div class="rule-item">
+                        <div class="rule-grid">
+                            <div>
+                                <label>Min Years</label>
+                                <input type="number" value="${range.min}" 
+                                       onchange="updateKnowledgeYears(${index}, 'min', this.value)">
+                            </div>
+                            <div>
+                                <label>Max Years</label>
+                                <input type="number" value="${range.max || ''}" placeholder="No limit"
+                                       onchange="updateKnowledgeYears(${index}, 'max', this.value)">
+                            </div>
+                            <div>
+                                <label>Points</label>
+                                <input type="number" value="${range.points}" 
+                                       onchange="updateKnowledgeYears(${index}, 'points', this.value)">
+                            </div>
+                        </div>
+                        <label>Label</label>
+                        <input type="text" value="${range.label}" 
+                               onchange="updateKnowledgeYears(${index}, 'label', this.value)">
+                    </div>
+                `;
+            });
+
+            html += '<h4 style="margin-top: 20px; color: #667eea;">Education Level</h4>';
+            for (const [key, config] of Object.entries(knowledge.educationLevel)) {
+                html += `
+                    <div class="rule-item">
+                        <label>${config.label}</label>
+                        <input type="number" value="${config.points}" 
+                               onchange="updateEducationLevel('${key}', this.value)">
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderObjectivesRules() {
+            const container = document.getElementById('objectivesRules');
+            const objectives = configuration.scoringRules.objectives;
+
+            let html = '<h4 style="margin-top: 15px; color: #667eea;">Time Horizon</h4>';
+            for (const [key, config] of Object.entries(objectives.timeHorizon)) {
+                html += `
+                    <div class="rule-item">
+                        <label>${config.label}</label>
+                        <input type="number" value="${config.points}" 
+                               onchange="updateTimeHorizon('${key}', this.value)">
+                    </div>
+                `;
+            }
+
+            html += '<h4 style="margin-top: 20px; color: #667eea;">Primary Objective</h4>';
+            for (const [key, config] of Object.entries(objectives.primaryObjective)) {
+                html += `
+                    <div class="rule-item">
+                        <label>${config.label}</label>
+                        <input type="number" value="${config.points}" 
+                               onchange="updatePrimaryObjective('${key}', this.value)">
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderRiskToleranceRules() {
+            const container = document.getElementById('riskToleranceRules');
+            const riskTolerance = configuration.scoringRules.riskTolerance;
+
+            let html = '';
+            for (const [key, config] of Object.entries(riskTolerance.level)) {
+                html += `
+                    <div class="rule-item">
+                        <label>${config.label}</label>
+                        <input type="number" value="${config.points}" 
+                               onchange="updateRiskToleranceLevel('${key}', this.value)">
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderRiskLevels() {
+            const container = document.getElementById('riskLevels');
+            
+            let html = '';
+            configuration.riskLevels.forEach((level, index) => {
+                html += `
+                    <div class="risk-level-card">
+                        <h4>Level ${level.level}: ${level.category}</h4>
+                        <label>Score Range</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <input type="number" value="${level.minScore}" placeholder="Min Score"
+                                   onchange="updateRiskLevel(${index}, 'minScore', this.value)">
+                            <input type="number" value="${level.maxScore}" placeholder="Max Score"
+                                   onchange="updateRiskLevel(${index}, 'maxScore', this.value)">
+                        </div>
+                        <label>Category Name</label>
+                        <input type="text" value="${level.category}"
+                               onchange="updateRiskLevel(${index}, 'category', this.value)">
+                        <label>Allowed Instruments (${level.allowedInstruments.length} selected)</label>
+                        <div class="instruments-grid">
+                            ${availableInstruments.map(inst => `
+                                <label class="instrument-checkbox">
+                                    <input type="checkbox" 
+                                           ${level.allowedInstruments.includes(inst) ? 'checked' : ''}
+                                           onchange="toggleInstrument(${index}, '${inst}', this.checked)">
+                                    ${inst}
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Update functions
+        function updateKnowledgeYears(index, field, value) {
+            const val = value === '' ? null : (field === 'label' ? value : Number(value));
+            configuration.scoringRules.knowledgeExperience.yearsInvesting[index][field] = val;
+        }
+
+        function updateEducationLevel(key, value) {
+            configuration.scoringRules.knowledgeExperience.educationLevel[key].points = Number(value);
+        }
+
+        function updateTimeHorizon(key, value) {
+            configuration.scoringRules.objectives.timeHorizon[key].points = Number(value);
+        }
+
+        function updatePrimaryObjective(key, value) {
+            configuration.scoringRules.objectives.primaryObjective[key].points = Number(value);
+        }
+
+        function updateRiskToleranceLevel(key, value) {
+            configuration.scoringRules.riskTolerance.level[key].points = Number(value);
+        }
+
+        function updateRiskLevel(index, field, value) {
+            configuration.riskLevels[index][field] = field === 'category' ? value : Number(value);
+        }
+
+        function toggleInstrument(levelIndex, instrument, checked) {
+            const instruments = configuration.riskLevels[levelIndex].allowedInstruments;
+            if (checked && !instruments.includes(instrument)) {
+                instruments.push(instrument);
+            } else if (!checked) {
+                const idx = instruments.indexOf(instrument);
+                if (idx > -1) instruments.splice(idx, 1);
+            }
+            // Re-render to update count
+            renderRiskLevels();
+        }
+
+        async function saveConfiguration() {
+            showLoading(true);
+            try {
+                const response = await fetch(`${API_BASE}/risk-configuration/${currentTenant}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(configuration)
+                });
+
+                const result = await response.json();
+                showAlert(`Configuration for ${configuration.name} saved successfully!`, 'success');
+            } catch (error) {
+                showAlert('Error saving configuration: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showNewTenantForm() {
+            document.getElementById('newTenantModal').style.display = 'block';
+        }
+
+        function hideNewTenantForm() {
+            document.getElementById('newTenantModal').style.display = 'none';
+            document.getElementById('newTenantId').value = '';
+            document.getElementById('newTenantName').value = '';
+            document.getElementById('newTenantDesc').value = '';
+        }
+
+        async function createNewTenant() {
+            const id = document.getElementById('newTenantId').value.trim();
+            const name = document.getElementById('newTenantName').value.trim();
+            const description = document.getElementById('newTenantDesc').value.trim();
+
+            if (!id || !name) {
+                showAlert('Tenant ID and Name are required', 'error');
+                return;
+            }
+
+            showLoading(true);
+            try {
+                // Copy retail configuration as template
+                const template = await fetch(`${API_BASE}/risk-configuration/retail`).then(r => r.json());
+                
+                const newConfig = {
+                    name: name,
+                    description: description,
+                    scoringRules: template.scoringRules,
+                    riskLevels: template.riskLevels
+                };
+
+                const response = await fetch(`${API_BASE}/risk-configuration/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newConfig)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error);
+                }
+
+                hideNewTenantForm();
+                await loadTenants();
+                await selectTenant(id);
+                showAlert(`Tenant "${name}" created successfully!`, 'success');
+            } catch (error) {
+                showAlert('Error creating tenant: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function deleteTenant() {
+            if (!confirm(`Are you sure you want to delete tenant "${configuration.name}"? This cannot be undone.`)) {
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const response = await fetch(`${API_BASE}/risk-configuration/${currentTenant}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error);
+                }
+
+                await loadTenants();
+                await selectTenant('retail');
+                showAlert('Tenant deleted successfully', 'success');
+            } catch (error) {
+                showAlert('Error deleting tenant: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 5000);
+        }
+
+        // Load tenants and configuration on page load
+        window.onload = async () => {
+            await loadTenants();
+            await loadConfiguration();
+        };
+    </script>
+</body>
+</html>

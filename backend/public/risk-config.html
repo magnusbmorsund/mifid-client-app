@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Configuration - MiFID II</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .subsection {
+            margin-bottom: 30px;
+        }
+
+        .subsection h3 {
+            color: #555;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .rule-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .rule-item label {
+            display: block;
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .rule-item input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .rule-item input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .rule-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .risk-level-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .risk-level-card h4 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .risk-level-card input,
+        .risk-level-card select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .instruments-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .instrument-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .instrument-checkbox input {
+            width: auto;
+            margin: 0;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Risk Configuration (Retail Tenant)</h1>
+            <p>Configure risk scoring rules and instrument allocation per risk level for the Retail tenant. For multi-tenant management, use <a href="/risk-config-multi-tenant.html" style="color: #667eea;">Multi-Tenant Interface</a>.</p>
+            
+            <div class="actions">
+                <button class="btn btn-primary" onclick="saveConfiguration()">💾 Save Configuration</button>
+                <button class="btn btn-secondary" onclick="loadConfiguration()">🔄 Reload</button>
+                <button class="btn btn-danger" onclick="resetConfiguration()">↺ Reset to Defaults</button>
+                <a href="/" class="btn btn-secondary">← Back to API Interface</a>
+            </div>
+
+            <div id="alert" style="margin-top: 20px;"></div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Loading configuration...</p>
+        </div>
+
+        <div class="content" id="content" style="display: none;">
+            <!-- Scoring Rules Section -->
+            <div class="section">
+                <h2>📊 Scoring Rules</h2>
+                
+                <div class="subsection">
+                    <h3>Financial Situation</h3>
+                    <div id="financialRules"></div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Knowledge & Experience</h3>
+                    <div id="knowledgeRules"></div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Investment Objectives</h3>
+                    <div id="objectivesRules"></div>
+                </div>
+
+                <div class="subsection">
+                    <h3>Risk Tolerance</h3>
+                    <div id="riskToleranceRules"></div>
+                </div>
+            </div>
+
+            <!-- Risk Levels Section -->
+            <div class="section">
+                <h2>🎯 Risk Levels & Instruments</h2>
+                <p style="color: #666; margin-bottom: 20px;">Configure score ranges and allowed instruments for each risk level</p>
+                <div id="riskLevels"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api';
+        let configuration = null;
+
+        const availableInstruments = [
+            'stocks', 'bonds', 'etfs', 'mutual_funds', 'options', 'futures',
+            'commodities', 'crypto', 'reits', 'high_yield_bonds', 'bond_funds',
+            'government_bonds', 'money_market', 'savings', 'balanced_funds',
+            'dividend_stocks', 'leveraged_etfs'
+        ];
+
+        async function loadConfiguration() {
+            showLoading(true);
+            try {
+                // Load retail tenant configuration by default
+                const response = await fetch(`${API_BASE}/risk-configuration/retail`);
+                configuration = await response.json();
+                renderConfiguration();
+                showAlert('Configuration loaded successfully (Retail tenant)', 'success');
+            } catch (error) {
+                showAlert('Error loading configuration: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function renderConfiguration() {
+            if (!configuration) return;
+
+            renderFinancialRules();
+            renderKnowledgeRules();
+            renderObjectivesRules();
+            renderRiskToleranceRules();
+            renderRiskLevels();
+
+            document.getElementById('content').style.display = 'grid';
+        }
+
+        function renderFinancialRules() {
+            const container = document.getElementById('financialRules');
+            const financial = configuration.scoringRules.financialSituation;
+
+            let html = '';
+            for (const [key, ranges] of Object.entries(financial)) {
+                html += `<h4 style="margin-top: 15px; color: #667eea;">${formatLabel(key)}</h4>`;
+                ranges.forEach((range, index) => {
+                    html += `
+                        <div class="rule-item">
+                            <div class="rule-grid">
+                                <div>
+                                    <label>Min</label>
+                                    <input type="number" value="${range.min}" 
+                                           onchange="updateFinancialRule('${key}', ${index}, 'min', this.value)">
+                                </div>
+                                <div>
+                                    <label>Max</label>
+                                    <input type="number" value="${range.max || ''}" placeholder="No limit"
+                                           onchange="updateFinancialRule('${key}', ${index}, 'max', this.value)">
+                                </div>
+                                <div>
+                                    <label>Points</label>
+                                    <input type="number" value="${range.points}" 
+                                           onchange="updateFinancialRule('${key}', ${index}, 'points', this.value)">
+                                </div>
+                            </div>
+                            <label>Label</label>
+                            <input type="text" value="${range.label}" 
+                                   onchange="updateFinancialRule('${key}', ${index}, 'label', this.value)">
+                        </div>
+                    `;
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        function renderKnowledgeRules() {
+            const container = document.getElementById('knowledgeRules');
+            const knowledge = configuration.scoringRules.knowledgeExperience;
+
+            let html = '<h4 style="margin-top: 15px; color: #667eea;">Years Investing</h4>';
+            knowledge.yearsInvesting.forEach((range, index) => {
+                html += `
+                    <div class="rule-item">
+                        <div class="rule-grid">
+                            <div>
+                                <label>Min Years</label>
+                                <input type="number" value="${range.min}" 
+                                       onchange="updateKnowledgeYears(${index}, 'min', this.value)">
+                            </div>
+                            <div>
+                                <label>Max Years</label>
+                                <input type="number" value="${range.max || ''}" placeholder="No limit"
+                                       onchange="updateKnowledgeYears(${index}, 'max', this.value)">
+                            </div>
+                            <div>
+                                <label>Points</label>
+                                <input type="number" value="${range.points}" 
+                                       onchange="updateKnowledgeYears(${index}, 'points', this.value)">
+                            </div>
+                        </div>
+                        <label>Label</label>
+                        <input type="text" value="${range.label}" 
+                               onchange="updateKnowledgeYears(${index}, 'label', this.value)">
+                    </div>
+                `;
+            });
+
+            html += '<h4 style="margin-top: 20px; color: #667eea;">Education Level</h4>';
+            for (const [key, config] of Object.entries(knowledge.educationLevel)) {
+                html += `
+                    <div class="rule-item">
+                        <label>${config.label}</label>
+                        <input type="number" value="${config.points}" 
+                               onchange="updateEducationLevel('${key}', this.value)">
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderObjectivesRules() {
+            const container = document.getElementById('objectivesRules');
+            const objectives = configuration.scoringRules.objectives;
+
+            let html = '<h4 style="margin-top: 15px; color: #667eea;">Time Horizon</h4>';
+            for (const [key, config] of Object.entries(objectives.timeHorizon)) {
+                html += `
+                    <div class="rule-item">
+                        <label>${config.label}</label>
+                        <input type="number" value="${config.points}" 
+                               onchange="updateTimeHorizon('${key}', this.value)">
+                    </div>
+                `;
+            }
+
+            html += '<h4 style="margin-top: 20px; color: #667eea;">Primary Objective</h4>';
+            for (const [key, config] of Object.entries(objectives.primaryObjective)) {
+                html += `
+                    <div class="rule-item">
+                        <label>${config.label}</label>
+                        <input type="number" value="${config.points}" 
+                               onchange="updatePrimaryObjective('${key}', this.value)">
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderRiskToleranceRules() {
+            const container = document.getElementById('riskToleranceRules');
+            const riskTolerance = configuration.scoringRules.riskTolerance;
+
+            let html = '';
+            for (const [key, config] of Object.entries(riskTolerance.level)) {
+                html += `
+                    <div class="rule-item">
+                        <label>${config.label}</label>
+                        <input type="number" value="${config.points}" 
+                               onchange="updateRiskToleranceLevel('${key}', this.value)">
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderRiskLevels() {
+            const container = document.getElementById('riskLevels');
+            
+            let html = '';
+            configuration.riskLevels.forEach((level, index) => {
+                html += `
+                    <div class="risk-level-card">
+                        <h4>Level ${level.level}: ${level.category}</h4>
+                        <label>Score Range</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <input type="number" value="${level.minScore}" placeholder="Min Score"
+                                   onchange="updateRiskLevel(${index}, 'minScore', this.value)">
+                            <input type="number" value="${level.maxScore}" placeholder="Max Score"
+                                   onchange="updateRiskLevel(${index}, 'maxScore', this.value)">
+                        </div>
+                        <label>Category Name</label>
+                        <input type="text" value="${level.category}"
+                               onchange="updateRiskLevel(${index}, 'category', this.value)">
+                        <label>Allowed Instruments</label>
+                        <div class="instruments-grid">
+                            ${availableInstruments.map(inst => `
+                                <label class="instrument-checkbox">
+                                    <input type="checkbox" 
+                                           ${level.allowedInstruments.includes(inst) ? 'checked' : ''}
+                                           onchange="toggleInstrument(${index}, '${inst}', this.checked)">
+                                    ${inst}
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Update functions
+        function updateFinancialRule(category, index, field, value) {
+            const val = value === '' ? null : (field === 'label' ? value : Number(value));
+            configuration.scoringRules.financialSituation[category][index][field] = val;
+        }
+
+        function updateKnowledgeYears(index, field, value) {
+            const val = value === '' ? null : (field === 'label' ? value : Number(value));
+            configuration.scoringRules.knowledgeExperience.yearsInvesting[index][field] = val;
+        }
+
+        function updateEducationLevel(key, value) {
+            configuration.scoringRules.knowledgeExperience.educationLevel[key].points = Number(value);
+        }
+
+        function updateTimeHorizon(key, value) {
+            configuration.scoringRules.objectives.timeHorizon[key].points = Number(value);
+        }
+
+        function updatePrimaryObjective(key, value) {
+            configuration.scoringRules.objectives.primaryObjective[key].points = Number(value);
+        }
+
+        function updateRiskToleranceLevel(key, value) {
+            configuration.scoringRules.riskTolerance.level[key].points = Number(value);
+        }
+
+        function updateRiskLevel(index, field, value) {
+            configuration.riskLevels[index][field] = field === 'category' ? value : Number(value);
+        }
+
+        function toggleInstrument(levelIndex, instrument, checked) {
+            const instruments = configuration.riskLevels[levelIndex].allowedInstruments;
+            if (checked && !instruments.includes(instrument)) {
+                instruments.push(instrument);
+            } else if (!checked) {
+                const idx = instruments.indexOf(instrument);
+                if (idx > -1) instruments.splice(idx, 1);
+            }
+        }
+
+        async function saveConfiguration() {
+            showLoading(true);
+            try {
+                // Save to retail tenant
+                const response = await fetch(`${API_BASE}/risk-configuration/retail`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(configuration)
+                });
+
+                const result = await response.json();
+                showAlert('Configuration saved successfully for Retail tenant! Risk calculations will now use these rules.', 'success');
+            } catch (error) {
+                showAlert('Error saving configuration: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function resetConfiguration() {
+            if (!confirm('Are you sure you want to reset to default configuration? This cannot be undone.')) {
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const response = await fetch(`${API_BASE}/risk-configuration/reset`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+                configuration = result.configuration;
+                renderConfiguration();
+                showAlert('Configuration reset to defaults', 'success');
+            } catch (error) {
+                showAlert('Error resetting configuration: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('active', show);
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 5000);
+        }
+
+        function formatLabel(str) {
+            return str.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+        }
+
+        // Load configuration on page load
+        window.onload = () => {
+            loadConfiguration();
+        };
+    </script>
+</body>
+</html>
